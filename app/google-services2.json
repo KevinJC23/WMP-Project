@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "938964782064",
+    "project_id": "game-store-project-cad4e",
+    "storage_bucket": "game-store-project-cad4e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:938964782064:android:b1f1e004f154ab958eab35",
+        "android_client_info": {
+          "package_name": "com.example.project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNVII9y1jCLVvn5qR0TT4KSp553ZaCr48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:938964782064:android:7cf2a5da53ead3a68eab35",
+        "android_client_info": {
+          "package_name": "com.example.project1752"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNVII9y1jCLVvn5qR0TT4KSp553ZaCr48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
