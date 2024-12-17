@@ -9,13 +9,17 @@ import android.widget.Toast;
 import android.content.Intent;
 
 import com.example.project1752.R;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class ResetPasswordActivity extends AppCompatActivity {
     private EditText txtEmailOrUsername, txtNewPassword, txtConfirmNewPassword;
     private Button btnResetPassword;
     private FirebaseAuth mAuth;
+    private FirebaseAuth secondaryAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +27,20 @@ public class ResetPasswordActivity extends AppCompatActivity {
         setContentView(R.layout.activity_reset_password);
 
         mAuth = FirebaseAuth.getInstance();
+
+        FirebaseApp secondaryApp;
+        try {
+            secondaryApp = FirebaseApp.getInstance("project175-2");
+        } catch (IllegalStateException e) {
+            secondaryApp = FirebaseApp.initializeApp(this, new FirebaseOptions.Builder()
+                    .setApplicationId("1:938964782064:android:7cf2a5da53ead3a68eab35")
+                    .setApiKey("AIzaSyBNVII9y1jCLVvn5qR0TT4KSp553ZaCr48")
+                    .setDatabaseUrl("https://your-secondary-project.firebaseio.com")
+                    .setProjectId("game-store-project-cad4e")
+                    .build(), "project175-2");
+        }
+
+        secondaryAuth = FirebaseAuth.getInstance(secondaryApp);
 
         txtEmailOrUsername = findViewById(R.id.txtEmailOrUsername);
         txtNewPassword = findViewById(R.id.txtNewPassword);
@@ -40,15 +58,16 @@ public class ResetPasswordActivity extends AppCompatActivity {
     }
 
     private void resetPassword() {
-        String emailOrUsername = txtEmailOrUsername.getText().toString().trim();
+        String email = txtEmailOrUsername.getText().toString().trim();
         String newPassword = txtNewPassword.getText().toString().trim();
         String confirmNewPassword = txtConfirmNewPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(emailOrUsername)) {
+        // Input validations
+        if (TextUtils.isEmpty(email)) {
             txtEmailOrUsername.setError("Email is required");
             return;
         }
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(emailOrUsername).matches()) {
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             txtEmailOrUsername.setError("Invalid email format");
             return;
         }
@@ -65,16 +84,37 @@ public class ResetPasswordActivity extends AppCompatActivity {
             return;
         }
 
-        mAuth.sendPasswordResetEmail(emailOrUsername)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(ResetPasswordActivity.this, "Password reset email sent", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(ResetPasswordActivity.this, LoginActivity.class));
-                        finish();
+        // Attempt to reset password
+        secondaryAuth.signInWithEmailAndPassword(email, newPassword)
+                .addOnCompleteListener(signInTask -> {
+                    if (signInTask.isSuccessful()) {
+                        // User successfully authenticated
+                        FirebaseUser currentUser = secondaryAuth.getCurrentUser();
+                        if (currentUser != null) {
+                            currentUser.updatePassword(newPassword)
+                                    .addOnCompleteListener(updateTask -> {
+                                        if (updateTask.isSuccessful()) {
+                                            Toast.makeText(ResetPasswordActivity.this,
+                                                    "Password reset successfully",
+                                                    Toast.LENGTH_SHORT).show();
+
+                                            // Sign out and return to login
+                                            secondaryAuth.signOut();
+                                            startActivity(new Intent(ResetPasswordActivity.this, LoginActivity.class));
+                                            finish();
+                                        } else {
+                                            Toast.makeText(ResetPasswordActivity.this,
+                                                    "Password reset failed",
+                                                    Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                        }
                     } else {
-                        Toast.makeText(ResetPasswordActivity.this, "Failed to send reset email", Toast.LENGTH_SHORT).show();
+                        // Authentication failed
+                        Toast.makeText(ResetPasswordActivity.this,
+                                "Authentication failed. Check your email and current password.",
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
     }
-
 }
